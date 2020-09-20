@@ -2,11 +2,14 @@ const express = require("express");
 const users = express.Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const cors = require("cors");
 const User = require("../models/User");
+
+users.use(cors());
 
 users.post("/register", async (req, res) => {
   try {
-    let { email, password, passwordCheck, userName } = req.body;
+    let { userName, email, password, passwordCheck } = req.body;
 
     // validate
 
@@ -46,7 +49,7 @@ users.post("/register", async (req, res) => {
 
 users.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, userName } = req.body;
 
     // validate
     if (!email || !password)
@@ -61,7 +64,10 @@ users.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials." });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign(
+      { id: user._id, userName: user.userName, email: user.email },
+      process.env.JWT_SECRET
+    );
     res.json({
       token,
       user: {
@@ -73,28 +79,50 @@ users.post("/login", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+users.get("/profile", (req, res) => {
+  var decoded = jwt.verify(
+    req.headers["authorization"],
+    process.env.JWT_SECRET
+  );
 
-users.post("/tokenIsValid", async (req, res) => {
-  try {
-    const token = req.header("x-auth-token");
-    if (!token) return res.json(false);
-
-    const verified = jwt.verify(token, process.env.JWT_SECRET);
-    if (!verified) return res.json(false);
-
-    const user = await User.findById(verified.id);
-    if (!user) return res.json(false);
-
-    return res.json(true);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  User.findOne({
+    where: {
+      id: decoded.id
+    }
+  })
+    .then(user => {
+      if (user) {
+        res.json(user);
+      } else {
+        res.send("User does not exist");
+      }
+    })
+    .catch(err => {
+      res.send("error: " + err);
+    });
 });
+
+// users.post("/tokenIsValid", async (req, res) => {
+//   try {
+//     const token = req.header("x-auth-token");
+//     if (!token) return res.json(false);
+
+//     const verified = jwt.verify(token, process.env.JWT_SECRET);
+//     if (!verified) return res.json(false);
+
+//     const user = await User.findById(verified.id);
+//     if (!user) return res.json(false);
+
+//     return res.json(true);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
 //   users.get("/", auth, async (req, res) => {
 //     const user = await User.findById(req.user);
 //     res.json({
-//       displayName: user.displayName,
+//       userName: user.displayName,
 //       id: user._id,
 //     });
 //   });
