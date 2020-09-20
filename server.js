@@ -29,3 +29,4 @@ mongoose.connect(
 
 //setup routes
 app.use("/users", require("./routes/users"));
+app.use("/messages", require("./routes/messages"));
