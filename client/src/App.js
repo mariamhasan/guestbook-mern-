@@ -5,6 +5,8 @@ import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import Header from "./components/layout/Header";
 import Profile from "./components/pages/Profile";
+import ReplyToMessage from "./components/pages/ReplyToMessage";
+import EditMessage from "./components/pages/EditMessage";
 import "./style.css";
 
 function App() {
@@ -17,6 +19,12 @@ function App() {
           <Route exact path="/login" component={Login} />
           <Route exact path="/register" component={Register} />
           <Route exact path="/profile" component={Profile} />
+          <Route
+            exact
+            path="/replytomessage"
+            component={ReplyToMessage}
+          ></Route>
+          <Route exact path="/editmessage" component={EditMessage}></Route>
         </Switch>
       </div>
     </BrowserRouter>

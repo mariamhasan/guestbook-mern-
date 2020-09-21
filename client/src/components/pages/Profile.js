@@ -1,5 +1,7 @@
 import React, { Component } from "react";
+import { Link, useHistory } from "react-router-dom";
 import jwt_decode from "jwt-decode";
+import axios from "axios";
 
 class Profile extends Component {
   constructor() {
@@ -7,6 +9,8 @@ class Profile extends Component {
     this.state = {
       userName: "",
       email: "",
+      messages: [],
+      reply:false,
       errors: {}
     };
   }
@@ -25,6 +29,20 @@ class Profile extends Component {
     } catch (error) {
       console.log(error);
     }
+    axios
+      .get("http://localhost:5000/messages/")
+      .then(response => {
+        this.setState({ messages: response.data });
+        // console.log(response.data)
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+
+  replytomessage=()=>{
+    this.state.reply = true;
+
   }
 
   render() {
@@ -47,24 +65,31 @@ class Profile extends Component {
             </tbody>
           </table>
         </div>
-        <button className="text-center btn btn-success form-group">
-          Write message
-        </button>
-        <div className="text-center">
-          <div className="card text-center" style={{ width: "67.5rem" }}>
-            <div className="card-body">
-              <h5 className="card-title">To: </h5>
-              <p className="card-text">
-                Some quick example text to build on the card title and make up
-                the bulk of the card's content.
-              </p>
-              <button className="card-link btn btn-primary">Reply</button>
-              <button className="card-link btn btn-secondary">Edit</button>
-              <button className="card-link btn btn-danger">Delete</button>
+        <Link to="/replytomessage">
+          <button className="text-center btn btn-success form-group">
+            Write message
+          </button>
+        </Link>
+
+        <h1 className="text-center">Messages list</h1>
+        {this.state.messages.map((message) => (
+          <div className="text-center form-group">
+            <div className="card text-center" style={{ width: "67.5rem" }}>
+              <div className="card-body">
+                <h5 key={message.id} className="card-title">To: {message.receiver}</h5>
+                <p  className="card-text">{message.messageBody}</p>
+                <button onClick={this.replytomessage} className="card-link btn btn-primary">Reply</button>
+                <Link className="card-link" to="/editmessage">
+                <button className=" btn btn-secondary">Edit</button>
+                </Link>
+                <button className="card-link btn btn-danger">Delete</button>
+              </div>
             </div>
           </div>
-        </div>
+        ))}
+        
       </div>
+      
     );
   }
 }
